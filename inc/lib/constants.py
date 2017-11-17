@@ -5,6 +5,7 @@
 
 T = "T"
 F = "F"
+BALL = "consistent"
 NEG = "negation"
 CONJ = "conjunction"
 DISJ = "disjunction"

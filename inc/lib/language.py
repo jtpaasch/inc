@@ -10,6 +10,11 @@ def atom(formula):
     return {"operator": None, "operands": [formula]}
 
 
+def ball(formula):
+    """Build a representation of a ball."""
+    return {"operator": constants.BALL, "operands": [formula]}
+
+
 def neg(formula):
     """Build a representation of a negation."""
     return {"operator": constants.NEG, "operands": [formula]}

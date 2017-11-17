@@ -44,18 +44,6 @@ class TestMain(TestCase):
         result = main.resolve(branches)
         self.assertEqual(result, expected)
 
-    def test_resolve_t_neg(self):
-        """Ensure ``resolve()`` resolves true negations."""
-        atom = language.atom("A")
-        neg = language.neg(atom)
-        true_neg = language.sign_formula(constants.T, neg)
-        false_atom = language.sign_formula(constants.F, atom)
-
-        branches = [[true_neg]]
-
-        result = main.resolve(branches)
-        self.assertEqual(result, [[false_atom]])
-
     def test_resolve_f_neg(self):
         """Ensure ``resolve()`` resolves false negations."""
         atom = language.atom("A")
@@ -113,6 +101,41 @@ class TestMain(TestCase):
             [true_atom_1, false_atom_2, false_atom_1],
             [true_atom_1, false_atom_2, true_atom_2],
         ]
+
+        result = main.resolve(branches)
+        self.assertEqual(result, expected)
+
+    def test_resolve_neg_and_ball(self):
+        """Ensure ``resolve()`` T:~A and T:*A to F:A."""
+        atom = language.atom("A")
+        neg = language.neg(atom)
+        ball = language.ball(atom)
+        true_neg = language.sign_formula(constants.T, neg)
+        true_ball = language.sign_formula(constants.T, ball)
+        false_atom = language.sign_formula(constants.F, atom)
+
+        branches = [[true_neg, true_ball]]
+        expected = [[false_atom]]
+
+        result = main.resolve(branches)
+        self.assertEqual(result, expected)
+
+    def test_resolve_excluded_middle(self):
+        """Ensure ``resolve()`` handles excluded middle formulas."""
+        atom = language.atom("A")
+        true_atom = language.sign_formula(constants.T, atom)
+        false_atom = language.sign_formula(constants.F, atom)
+
+        neg_atom = language.neg(atom)
+        ball_atom = language.ball(atom)
+
+        ball_conj = language.conj(ball_atom, neg_atom)
+        conj = language.conj(atom, ball_conj)
+        neg = language.neg(conj)
+        signed_neg = language.sign_formula(constants.F, neg)
+
+        branches = [[signed_neg]]
+        expected = [[true_atom, false_atom]]
 
         result = main.resolve(branches)
         self.assertEqual(result, expected)
