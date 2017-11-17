@@ -4,7 +4,7 @@ import argparse
 import sys
 
 from . import log as cli_log
-from ..lib import app
+from ..lib import main
 
 
 def parse_args(args):
@@ -24,7 +24,7 @@ def cli():
     log = cli_log.get_log(args.verbose)
     log("Starting the program...")
     try:
-        app.run(log)
+        main.run(log)
     except:  # noqa: E722
         exc_type, exc_val, exc_tb = sys.exc_info()
         msg = "Error - {}: {}".format(exc_type.__name__, exc_val)

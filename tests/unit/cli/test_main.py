@@ -19,31 +19,30 @@ class TestMain(TestCase):
             self.assertTrue("verbose" in args)
 
     def test_cli(self):
-        """Ensure ``cli()`` invokes the app."""
+        """Ensure ``cli()`` invokes the main program."""
         args = Mock(
             verbose="dummy-verbose-flag"
         )
         log = Mock()
 
         main_module = main.__name__
-        p1 = patch("{}.app.run".format(main_module))
+        p1 = patch("{}.main.run".format(main_module))
         p2 = patch("{}.parse_args".format(main_module))
         p3 = patch("{}.cli_log.get_log".format(main_module))
 
-        with p1 as app_run, p2 as parse_args, p3 as get_log:
+        with p1 as main_run, p2 as parse_args, p3 as get_log:
             parse_args.return_value = args
             get_log.return_value = log
 
             main.cli()
-            app_run.assert_called_once_with(
-                log, args.corpus, args.infile, args.outfile)
+            main_run.assert_called_once_with(log)
 
     def test_cli_catches_errors(self):
         """Ensure ``cli()`` catches errors and exits cleanly."""
         main_module = main.__name__
-        p1 = patch("{}.app.run".format(main_module))
+        p1 = patch("{}.main.run".format(main_module))
         p2 = patch("{}.parse_args".format(main_module))
-        with p1 as app_run, p2:
-            app_run.side_effect = Exception
+        with p1 as main_run, p2:
+            main_run.side_effect = Exception
             with self.assertRaises(SystemExit):
                 main.cli()
