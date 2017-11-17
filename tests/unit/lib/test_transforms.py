@@ -10,18 +10,6 @@ from inc.lib import transforms
 class TestTransforms(TestCase):
     """Test suite for the ``lib.transforms`` module."""
 
-    def test_t_neg(self):
-        """Ensure ``t_neg()`` produces the right leaves."""
-        atom = language.atom("dummy-formula")
-        signed_atom = language.sign_formula(constants.F, atom)
-
-        formula = language.neg(atom)
-        signed_formula = language.sign_formula(constants.T, formula)
-
-        result = transforms.t_neg(signed_formula)
-        expected = {"left": [signed_atom], "right": []}
-        self.assertEqual(result, expected)
-
     def test_f_neg(self):
         """Ensure ``f_neg()`` produces the right leaves."""
         atom = language.atom("dummy-formula")
@@ -62,8 +50,17 @@ class TestTransforms(TestCase):
         expected = {"left": [signed_atom_1], "right": [signed_atom_2]}
         self.assertEqual(result, expected)
 
+    def test_idem(self):
+        """Ensure ``idem()`` returns the right leaves."""
+        atom = language.atom("dummy-formula")
+        signed_atom = language.sign_formula(constants.T, atom)
+
+        result = transforms.idem(signed_atom)
+        expected = {"left": [signed_atom], "right": []}
+        self.assertEqual(result, expected)
+
     def test_transformer(self):
         """Ensure ``transformer()`` returns mapped functions."""
-        result = transforms.transformer(constants.T, constants.NEG)
-        expected = transforms.t_neg
+        result = transforms.transformer(constants.F, constants.NEG)
+        expected = transforms.f_neg
         self.assertEqual(result, expected)

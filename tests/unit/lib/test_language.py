@@ -16,6 +16,13 @@ class TestLanguage(TestCase):
         expected = {"operator": None, "operands": [formula]}
         self.assertEqual(result, expected)
 
+    def test_ball(self):
+        """Ensure ``ball()`` builds the right representation af a ball."""
+        formula = language.atom("dummy-formula")
+        result = language.ball(formula)
+        expected = {"operator": constants.BALL, "operands": [formula]}
+        self.assertEqual(result, expected)
+
     def test_neg(self):
         """Ensure ``neg()`` builds the right representation of a negation."""
         formula = language.atom("dummy-formula")
