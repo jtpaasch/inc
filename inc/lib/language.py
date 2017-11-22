@@ -2,27 +2,15 @@
 
 """A module with utils for building formulas."""
 
-from . import constants
 
-
-def atom(formula):
+def atom(operand):
     """Build a representation of an atomic formula."""
-    return {"operator": None, "operands": [formula]}
+    return {"operator": None, "operands": [operand]}
 
 
-def ball(formula):
-    """Build a representation of a ball."""
-    return {"operator": constants.BALL, "operands": [formula]}
-
-
-def neg(formula):
-    """Build a representation of a negation."""
-    return {"operator": constants.NEG, "operands": [formula]}
-
-
-def conj(formula_1, formula_2):
-    """Build a representation of a conjunction."""
-    return {"operator": constants.CONJ, "operands": [formula_1, formula_2]}
+def molecule(operator, operands):
+    """Build a representation of a molecular formula."""
+    return {"operator": operator, "operands": operands}
 
 
 def sign_formula(sign, formula):

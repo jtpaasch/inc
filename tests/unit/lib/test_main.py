@@ -2,9 +2,10 @@
 
 from unittest import TestCase
 
-from inc.lib import constants
 from inc.lib import language
 from inc.lib import main
+
+from inc.lib.logics import mbC, PC
 
 
 class TestMain(TestCase):
@@ -16,126 +17,119 @@ class TestMain(TestCase):
         main.run(output.append)
         self.assertTrue(True)
 
-    def test_get_inconsistencies(self):
-        """Ensure ``get_inconsistencies()`` finds the inconsistencies."""
-        atom = language.atom("A")
-        true_atom = language.sign_formula(constants.T, atom)
-        false_atom = language.sign_formula(constants.F, atom)
+    def test_expand_t_neg_PC(self):
+        """Ensure ``expand()`` expands false negations (for PC)."""
+        a = language.atom("A")
+        neg_a = language.molecule("NEG", [a])
+        t_neg_a = language.sign_formula("T", neg_a)
+        f_a = language.sign_formula("F", a)
 
-        atom_2 = language.atom("B")
-        true_atom_2 = language.sign_formula(constants.T, atom_2)
+        branches = [[t_neg_a]]
 
-        branch = [true_atom, false_atom, true_atom_2]
+        result = main.expand(PC.rules, branches)
+        self.assertEqual(result, [[f_a]])
 
-        result = main.get_inconsistencies(branch)
-        expected = [(true_atom, false_atom)]
+    def test_expand_t_neg_mbC(self):
+        """Ensure ``expand()`` expands false negations (for mbC)."""
+        a = language.atom("A")
+        neg_a = language.molecule("NEG", [a])
+        ball_a = language.molecule("BALL", [a])
+        f_a = language.sign_formula("F", a)
+        t_neg_a = language.sign_formula("T", neg_a)
+        t_ball_a = language.sign_formula("T", ball_a)
+
+        branches = [[t_neg_a, t_ball_a]]
+
+        result = main.expand(mbC.rules, branches)
+        self.assertEqual(result, [[f_a]])
+
+    def test_expand_f_neg(self):
+        """Ensure ``expand()`` expands false negations."""
+        a = language.atom("A")
+        neg_a = language.molecule("NEG", [a])
+        f_neg_a = language.sign_formula("F", neg_a)
+        t_a = language.sign_formula("T", a)
+
+        branches = [[f_neg_a]]
+
+        result = main.expand(PC.rules, branches)
+        self.assertEqual(result, [[t_a]])
+
+    def test_expand_t_conj(self):
+        """Ensure ``expand()`` expands true conjunctions."""
+        a = language.atom("A")
+        b = language.atom("B")
+        conj = language.molecule("CONJ", [a, b])
+        t_conj = language.sign_formula("T", conj)
+        t_a = language.sign_formula("T", a)
+        t_b = language.sign_formula("T", b)
+
+        branches = [[t_conj]]
+
+        result = main.expand(PC.rules, branches)
+        self.assertEqual(result, [[t_a, t_b]])
+
+    def test_expand_f_conj(self):
+        """Ensure ``expand()`` expands false conjunctions."""
+        a = language.atom("A")
+        b = language.atom("B")
+        conj = language.molecule("CONJ", [a, b])
+        f_conj = language.sign_formula("F", conj)
+        f_a = language.sign_formula("F", a)
+        f_b = language.sign_formula("F", b)
+
+        branches = [[f_conj]]
+
+        result = main.expand(PC.rules, branches)
+        self.assertEqual(result, [[f_a], [f_b]])
+
+    def test_prove_modus_ponens(self):
+        """Ensure ``prove()`` proves modus ponens."""
+        a = language.atom("A")
+        b = language.atom("B")
+        neg_b = language.molecule("NEG", [b])
+        conj = language.molecule("CONJ", [a, neg_b])
+        f_conj = language.sign_formula("F", conj)
+        t_a = language.sign_formula("T", a)
+        f_a = language.sign_formula("F", a)
+        t_b = language.sign_formula("T", b)
+        f_b = language.sign_formula("F", b)
+
+        result = main.prove(PC.rules, [t_a, f_conj, f_b])
+
+        expected = (
+            True,
+            [[(t_a, f_a)], [(f_b, t_b)]],
+            [[t_a, f_b, f_a], [t_a, f_b, t_b]])
         self.assertEqual(result, expected)
 
-    def test_resolve_only_atoms(self):
-        """Ensure ``resolve()`` handles all atomic formulas."""
-        atom_1 = language.atom("A")
-        atom_2 = language.atom("B")
-        true_atom_1 = language.sign_formula(constants.T, atom_1)
-        false_atom_2 = language.sign_formula(constants.F, atom_2)
+    def test_prove_explosion(self):
+        """Ensure ``prove()`` proves explosion."""
+        a = language.atom("A")
+        b = language.atom("B")
+        t_a = language.sign_formula("T", a)
+        f_a = language.sign_formula("F", a)
+        f_b = language.sign_formula("F", b)
 
-        branches = [[true_atom_1, false_atom_2]]
-        expected = [[true_atom_1, false_atom_2]]
+        result = main.prove(PC.rules, [t_a, f_a, f_b])
 
-        result = main.resolve(branches)
+        expected = (
+            True,
+            [[(t_a, f_a)]],
+            [[t_a, f_a, f_b]])
         self.assertEqual(result, expected)
 
-    def test_resolve_f_neg(self):
-        """Ensure ``resolve()`` resolves false negations."""
-        atom = language.atom("A")
-        neg = language.neg(atom)
-        false_neg = language.sign_formula(constants.F, neg)
-        true_atom = language.sign_formula(constants.T, atom)
+    def test_prove_nothing(self):
+        """Ensure ``prove()`` doesn't prove non-sequiturs."""
+        a = language.atom("A")
+        b = language.atom("B")
+        t_a = language.sign_formula("T", a)
+        f_b = language.sign_formula("F", b)
 
-        branches = [[false_neg]]
+        result = main.prove(PC.rules, [t_a, f_b])
 
-        result = main.resolve(branches)
-        self.assertEqual(result, [[true_atom]])
-
-    def test_resolve_t_conj(self):
-        """Ensure ``resolve()`` resolves true conjunctions."""
-        atom_1 = language.atom("A")
-        atom_2 = language.atom("B")
-        conj = language.conj(atom_1, atom_2)
-        true_conj = language.sign_formula(constants.T, conj)
-        true_atom_1 = language.sign_formula(constants.T, atom_1)
-        true_atom_2 = language.sign_formula(constants.T, atom_2)
-
-        branches = [[true_conj]]
-
-        result = main.resolve(branches)
-        self.assertEqual(result, [[true_atom_1, true_atom_2]])
-
-    def test_resolve_f_conj(self):
-        """Ensure ``resolve()`` resolves false conjunctions."""
-        atom_1 = language.atom("A")
-        atom_2 = language.atom("B")
-        conj = language.conj(atom_1, atom_2)
-        false_conj = language.sign_formula(constants.F, conj)
-        false_atom_1 = language.sign_formula(constants.F, atom_1)
-        false_atom_2 = language.sign_formula(constants.F, atom_2)
-
-        branches = [[false_conj]]
-
-        result = main.resolve(branches)
-        self.assertEqual(result, [[false_atom_1], [false_atom_2]])
-
-    def test_resolve_modus_ponens(self):
-        """Ensure ``resolve()`` resolves modus ponens."""
-        atom_1 = language.atom("A")
-        atom_2 = language.atom("B")
-        neg_atom_2 = language.neg(atom_2)
-        conj = language.conj(atom_1, neg_atom_2)
-        false_conj = language.sign_formula(constants.F, conj)
-        true_atom_1 = language.sign_formula(constants.T, atom_1)
-        false_atom_1 = language.sign_formula(constants.F, atom_1)
-        true_atom_2 = language.sign_formula(constants.T, atom_2)
-        false_atom_2 = language.sign_formula(constants.F, atom_2)
-
-        branches = [[true_atom_1, false_conj, false_atom_2]]
-        expected = [
-            [true_atom_1, false_atom_2, false_atom_1],
-            [true_atom_1, false_atom_2, true_atom_2],
-        ]
-
-        result = main.resolve(branches)
-        self.assertEqual(result, expected)
-
-    def test_resolve_neg_and_ball(self):
-        """Ensure ``resolve()`` T:~A and T:*A to F:A."""
-        atom = language.atom("A")
-        neg = language.neg(atom)
-        ball = language.ball(atom)
-        true_neg = language.sign_formula(constants.T, neg)
-        true_ball = language.sign_formula(constants.T, ball)
-        false_atom = language.sign_formula(constants.F, atom)
-
-        branches = [[true_neg, true_ball]]
-        expected = [[false_atom]]
-
-        result = main.resolve(branches)
-        self.assertEqual(result, expected)
-
-    def test_resolve_excluded_middle(self):
-        """Ensure ``resolve()`` handles excluded middle formulas."""
-        atom = language.atom("A")
-        true_atom = language.sign_formula(constants.T, atom)
-        false_atom = language.sign_formula(constants.F, atom)
-
-        neg_atom = language.neg(atom)
-        ball_atom = language.ball(atom)
-
-        ball_conj = language.conj(ball_atom, neg_atom)
-        conj = language.conj(atom, ball_conj)
-        neg = language.neg(conj)
-        signed_neg = language.sign_formula(constants.F, neg)
-
-        branches = [[signed_neg]]
-        expected = [[true_atom, false_atom]]
-
-        result = main.resolve(branches)
+        expected = (
+            False,
+            [[]],
+            [[t_a, f_b]])
         self.assertEqual(result, expected)
