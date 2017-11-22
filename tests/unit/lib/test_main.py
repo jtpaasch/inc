@@ -17,6 +17,38 @@ class TestMain(TestCase):
         main.run(output.append)
         self.assertTrue(True)
 
+    def test_expand_right(self):
+        """Test the case where ``expand()`` expands only right."""
+        a = language.atom("A")
+        t_a = language.sign_formula("T", a)
+
+        rules = [{
+            "input": [
+                {
+                    "sign": "T",
+                    "formula": {
+                        "operator": None,
+                        "operands": ["A"],
+                    }
+                },
+            ],
+            "output": {
+                "left": [],
+                "right": [
+                    {
+                        "sign": "F",
+                        "formula": {
+                            "operator": "NEG",
+                            "operands": ["A"],
+                        }
+                    }
+                ],
+            },
+        }]
+
+        result = main.prove(rules, [t_a])
+        self.assertFalse(result[0])
+
     def test_expand_t_neg_PC(self):
         """Ensure ``expand()`` expands false negations (for PC)."""
         a = language.atom("A")
