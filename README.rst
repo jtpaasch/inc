@@ -43,7 +43,7 @@ This will run the unittests, and print a coverage report.
 Constructing Formulas
 ---------------------
 
-Construct an atomic formula::
+To construct an atomic formula, use the ``atom()`` function::
 
     from inc.lib import language
     p = language.atom("P")
@@ -63,7 +63,9 @@ Here is a negation (which is a unary operator, so it takes only one operand)::
     p = language.atom("P")
     neg_p = language.molecule("NEG", [p])
 
-To sign formulas::
+To sign formulas, use the ``sign_formula()`` function. It takes two
+arguments: (i) a value to sign it with like "T" or "F", and (ii) the
+formula to sign::
 
     from inc.lib import language
 
@@ -74,8 +76,8 @@ To sign formulas::
     false_neg_p = language.sign_formula("F", neg_p)
 
 
-Proving
--------
+Running the Prover
+------------------
 
 Suppose we want to prove "P" from "P & Q". First, construct the formulas::
 
@@ -84,21 +86,48 @@ Suppose we want to prove "P" from "P & Q". First, construct the formulas::
     q = language.atom("Q")
     conj = language.molecule("CONJ", [p, q])
 
-Sign the premises as true and sign the conclusion as false::
+Sign the premises as true, and the conclusion as false::
 
     true_conj = language.sign_formula("T", conj)
     false_p = language.sign_formula("F", p)
 
-Now prove that set of formulas, using the PC (propositional calculus) rules::
+Now import the ``main`` package, and the ``logics.PC`` module (this latter module has the propositional calculus tableaux rules)::
 
     from inc.lib import main
     from inc.lib.logics import PC
-    success, inconsistencies, branches = main.prove(PC.rules, [true_conj, false_p])
 
-The first returned item is whether the proof succeeded. 
-The second returned item is a list of all inconsistent pairs
-found on each expanded branch.
-The third returned item is the list of expanded branches.
+Now use the ``prove()`` function to run the prover. It takes two arguments: (i) a set of rules from the ``lib.logics`` package, and (ii) a list of signed formulas::
+
+    success, incon, branches = main.prove(PC.rules, [true_conj, false_p])
+
+The ``prove()`` function returns three items:
+
+* Whether or not the proof succeeded.
+* All inconsistent pairs of formulas on all expanded branches.
+* All expanded branches.
+
+
+Running mbC Proofs
+------------------
+
+Proofs for mbC are executed the same way, but use the ``logics.mbC.rules``.
+
+Also, with mbC, you can construct ball formulas::
+
+    from inc.lib import language
+    from inc.lib import main
+    from inc.lib.logics import mbC
+
+    p = language.atom("P")
+    ball_p = language.molecule("BALL", [p])
+    neg_p = language.mocelule("NEG", [p])
+
+    true_ball_p = language.sign_formula("T", ball_p)
+    true_neg_p = language.sign_formula("T", neg_p)
+    t_p = language.sign_formula("T", p)
+
+    formulas = [true_ball_p, true_neg_p, t_p]
+    success, incon, branches = main.prove(mbC.rules, formulas)
 
 
 New Tableaux Rules
