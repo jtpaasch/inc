@@ -21,6 +21,8 @@ class TestMain(TestCase):
         """Test the case where ``expand()`` expands only right."""
         a = language.atom("A")
         t_a = language.sign_formula("T", a)
+        neg_a = language.molecule("NEG", [a])
+        f_neg_a = language.sign_formula("F", neg_a)
 
         rules = [{
             "input": [
@@ -47,7 +49,11 @@ class TestMain(TestCase):
         }]
 
         result = main.prove(rules, [t_a])
-        self.assertFalse(result[0])
+        expected = (
+            False,
+            [[],[]],
+            [[], [f_neg_a]])
+        self.assertEqual(result, expected)
 
     def test_expand_t_neg_PC(self):
         """Ensure ``expand()`` expands false negations (for PC)."""

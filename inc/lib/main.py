@@ -39,10 +39,15 @@ def get_replacements(rule, matches):
     replacements = {}
     for schema in rule["input"]:
         for match in matches:
-            schema_operands = schema["formula"]["operands"]
-            match_operands = match["formula"]["operands"]
-            for i in range(len(schema_operands)):
-                replacements[schema_operands[i]] = match_operands[i]
+            placeholders = schema["formula"]["operands"]
+            formula = match["formula"]
+            operator = formula["operator"]
+            operands = formula["operands"]
+            for i in range(len(placeholders)):
+                if operator is None:
+                    replacements[placeholders[i]] = formula
+                else:
+                    replacements[placeholders[i]] = operands[i]
     return replacements
 
 
