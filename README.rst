@@ -110,7 +110,7 @@ The ``prove()`` function returns three items:
 Running mbC Proofs
 ------------------
 
-Proofs for mbC are executed the same way, but use the ``logics.mbC.rules``.
+Proofs for mbC are executed the same way, but use the rules from ``logics.mbC``.
 
 Also, with mbC, you can construct ball formulas::
 
@@ -136,7 +136,7 @@ New Tableaux Rules
 Currently, the ``logics.PC`` and ``logics.mbC`` modules have 
 tableaux expansion rules only for negation and conjunction, 
 but of course all other propositional formulas can be translated 
-into formulas using those just operators.
+into formulas using just those operators.
 
 To add more tableaux rules to either the ``PC`` or ``mbC`` systems, 
 modify the ``inc.lib.logics.PC`` and ``inc.lib.logics.mbC`` modules.
